@@ -1,0 +1,70 @@
+<?xml version='1.0'?>
+    <project name='database' basedir='../' default='main' >
+
+        <target name='main' description='what are we doing for database' >
+            <input propertyname='new_old_db' validargs='yes,no' message='Spin up new database' />
+            <if>
+                <istrue value='${new_old_db}' />
+                <then>
+                    <property name='shell' value='createDb' />
+                    <phingcall target='newDatabase' />
+                </then>
+                <else>
+                    <property name='shell' value='dropDb' />
+                    <phingcall target='dropDatabase' />
+                </else>
+            </if>
+        </target>   
+
+        <target name='newDatabase' description='Create a new database' >
+            <input propertyname='database_name' message='what are you calling your database' /> 
+            <phingcall target='dbList' />
+
+            <input propertyname='db_copied' defaultValue='defaultValue_staging' message='what is the name of the database you want to copy' />
+            <phingcall target='shellScript' />
+        </target>
+
+        <target name='dropDatabase' description='Drop database' >
+            <echo msg='So you want to drop a database' />
+            <phingcall target='dbList' />
+            <input propertyname='database_name' message='which database are you dropping' /> 
+
+            <phingcall target='shellScript' />
+        </target>
+
+        <target name='dbList' description='list of databases we have on qa' >
+            <echo msg='Please enter password to see the list of databases ' />
+            <exec command='psql -h qa.mshanken.com -l -U dchan' outputProperty='database_list' />
+            <echo msg='${database_list}' />
+        </target>
+
+        <target name='shellScript' description='the shell script that created database' >
+            <exec command='find ${project.basedir}/phing/database/ -name ${shell}.sh -print' outputProperty='check_db' />
+            <if>
+                <istrue value='${check_db}' />
+                <then>
+                    <exec command='rm -f ${project.basedir}/phing/database/${shell}.sh' />
+                    <echo msg='Removing old shell script for new one' />
+                    <phingcall target='replacetokens' />
+                    <exec command='sudo -u postgres sh ${project.basedir}/phing/database/${shell}.sh' outputProperty='shOutput1' />
+                    <echo msg='${shOutput1}' />
+                </then>
+                <else>
+                    <phingcall target='replacetokens' />
+                    <exec command='sudo -u postgres sh ${project.basedir}/phing/database/${shell}.sh' outputProperty='shOutput2' />
+                    <echo msg='${shOutput2}' />
+                </else>
+            </if>
+        </target>
+
+        <target name='replacetokens' description='change values for shell scrip' >
+            <copy file='${project.basedir}/phing/database/${shell}.sample' tofile='${project.basedir}/phing/database/${shell}.sh' >
+                <filterchain>
+                    <replacetokens>
+                        <token key='name_db' value='${database_name}' />
+                        <token key='dbCopy' value='${db_copied}' />
+                    </replacetokens>
+                </filterchain>
+            </copy>
+        </target>
+    </project>

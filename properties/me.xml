@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+    <project name='development' basedir='../../' default='main' >
+    
+        <target name='main'>
+            <exec command='whoami' outputProperty='whoami' />
+            <php expression="preg_replace('/.*\//', '', '${realpath}')" returnProperty='name' />
+            <input propertyname="cloudsearch_key">What is your cloudsearch_key?</input>
+            <input propertyname="cloudsearch_secret">What is your cloudsearch_secret?</input>
+            <input propertyname="domain">What is your cloudsearch domain? example: -dev-2013-08-14 </input>
+            <input propertyname='database'>What is the name of your database?</input>
+            <phing phingfile='phing/dev_environment.xml' target='rights'>
+
+                <!-- url names -->
+                <property name='project' value='${name}' />
+                <property name='project_hostname' value='${whoami}.${project}.qa.mshanken.com' />
+
+                <!-- location of configuration directory -->
+                <property name='conf' value='${realpath}/application/config/' />
+                
+                <!-- cloudsearch dev info -->
+                <property name='cloudsearch_key' value='${cloudsearch_key}' />
+                <property name='cloudsearch_secret' value='${cloudsearch_secret}' />
+                <property name='cloudsearch_default_cache_config' value='apc' />
+                <property name='cloudsearch_certificate_authority' value='true, // THIS IS A LOAD-BEARING COMMENT' />
+                <property name='cloudsearch_cache_host' value='localhost' />
+                <property name='cloudsearch_cache_port' value='00000' />
+                <property name='cloudsearch_cache_ttl' value='0000000' />
+                
+                <!-- cloudsearch domains and beanstalk tube prefixes --> 
+                <property name='tube_domain' value='${domain}' />
+                
+                <!-- database --> 
+                <property name='keyLookingfor' value='${database}' />
+
+            </phing>
+        </target>
+
+    </project>

@@ -1,0 +1,65 @@
+<?xml version='1.0'?>
+    <project name='project_name' basedir='../' default='phing_tasks' >
+
+        <property name='realpath' value='${project.basedir}' />
+
+        <target name='phing_tasks' description='list of commands phing can run'>
+            <echo msg='RUN DEVELOPMENT ' />
+            <echo msg='==========================' />
+            <echo msg='phing dev               To start development environment' />
+            <echo msg=' ' />
+            <echo msg='RUN Staging ' />
+            <echo msg='==========================' />
+            <echo msg='phing stage             To start staging environment' />
+            <echo msg=' ' />
+            <echo msg='RUN Devstable ' />
+            <echo msg='==========================' />
+            <echo msg='phing devstable         To start stable development staging environment' />
+            <echo msg=' ' />
+            <echo msg='RUN PRODUCTION ' />
+            <echo msg='==========================' />
+            <echo msg='phing prod              To start production environment' />
+            <echo msg=' ' />
+            <echo msg="RUN CHECK LIST " />
+            <echo msg='==========================' />
+            <echo msg="phing check             This checks if dependencies are intalled" />
+            <echo msg=' ' />
+            <echo msg="CREATE NEW DATABASE " />
+            <echo msg='==========================' />
+            <echo msg="phing database          This creates a new database" />
+            <echo msg=' ' />
+            <echo msg="CREATE CLOUDSEARCH " />
+            <echo msg='==========================' />
+            <echo msg="phing cloudsearch       This creates a new cloudsearch" />
+            <echo msg=' ' />
+        </target>
+
+        <target name='dev' description='Start of development deployment and changes user and group rights' >
+            <phing phingfile='phing/properties/me.xml' target='main'/>
+        </target>
+
+        <target name='devstable' description='Start of staging deployment and changes user and group rights' >
+            <phing phingfile='phing/properties/devstable.xml' target='main' />
+        </target>
+
+        <target name='stage' description='Start of staging deployment and changes user and group rights' >
+            <phing phingfile='phing/properties/prod.xml' target='main' />
+        </target>
+
+        <target name='prod' description='Start of production deployment and changes user and group rights' >
+            <phing phingfile='phing/properties/prod.xml' target='main' />
+        </target>
+
+        <target name='check' description='This checks if dependencies are intalled' >
+            <phing phingfile='phing/check.xml' target='check' />
+        </target>
+
+        <target name='database' description='This creates a new database' >
+            <phing phingfile='phing/database.xml' target='main' />
+        </target>
+
+        <target name='cloudsearch' description='This creates a new cloudsearch' >
+            <phing phingfile='phing/cloudsearch.xml' target='main' />
+        </target>
+
+    </project>

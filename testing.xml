@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+    <project name='tests' basedir='../application/test/api' default='main' >
+
+        <target name='main' description='just letting you know' >
+            <echo msg='You should just type phing' />
+        </target>   
+
+        <target name='phpunitTests' description='runs phpunit tests' >
+            <phpunit bootstrap='${realpath}/modules/unittest/bootstrap.php' haltonfailure='true' printsummary='true' >
+                <formatter type='plain' usefile='false' />
+                <batchtest>
+                    <fileset dir='${realpath}/application/test/api' >
+                        <include name='*Test.php' />
+                        <include name='**/*Test.php' />
+                    </fileset>
+                </batchtest>  
+            </phpunit>
+        </target>
+
+    </project>

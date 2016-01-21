@@ -1,0 +1,174 @@
+<?xml version='1.0'?>
+    <project name='devstable_environment' basedir='../' default='main' >
+
+        <target name='main' description='just letting you know' >
+            <echo msg='You should just type phing' />
+        </target>
+
+        <target name='rights' description='Start of development deployment and changes user and group rights' >
+            <exec command="sudo chmod -R g+w ${realpath}/*"  />
+            <exec command="sudo chmod -R g+w ${realpath}/.git"  />
+            <mkdir dir='${realpath}/application/logs' />
+            <mkdir dir='${realpath}/application/cache' />
+            <exec command='sudo chmod -R ${realpath}/application/logs 775' />
+            <exec command='sudo chmod -R ${realpath}/application/cache 775' />
+            <phingcall target='git_submodule' />
+            <phingcall target='database' />
+            <phingcall target='cloudsearch' />
+            <phingcall target='beanstalk' />
+            <phingcall target='test_config' />
+            <phingcall target='unittests' />
+            <phingcall target='test_config' />
+            <phingcall target='makesdk' />
+        </target>
+
+        <target name="<owner>" description="Change user and group to <owner>">
+            <echo msg="Changing user and group to <owner> ${realpath}" />
+            <exec command="sudo chown -R <owner>:<owner> ${realpath}" escape="false" />
+        </target>
+
+        <target name='git_submodule' description='preforms update --init --recursive' >
+            <echo msg="If this is your first pull go get a cup of joe this is going to take long...." />
+            <exec command='git submodule update --init' outputProperty='submodule_output' />
+            <echo msg="Output: ${submodule_output}" />
+        </target>
+    
+        <target name='database' description='incorporates database information or it updates it' >
+            <exec command='find ${conf} -name database.php -print' outputProperty='db_output' />
+            <if>
+                <istrue value='${db_output}' />
+                <then>
+                    <exec command='rm -f ${conf}/database.php' />
+                    <echo msg='Removing database config file' />
+                </then>
+                <else>
+                    <echo msg='Database config file was not found, creating it' />
+                </else>
+            </if>
+            <copy file='${conf}/database.php.sample' tofile='${conf}/database.php' >
+               <filterchain>
+                    <replacetokens>
+                        <token key='keyLookingfor' value='${variable_in_page_to_replace}' />
+                    </replacetokens>
+                </filterchain>
+            </copy> 
+        </target>
+
+        <target name='cloudsearch' description='get cloudsearch.php working for production' >
+            <exec command='find ${conf} -name cloudsearch.php -print' outputProperty='cloud_output' />
+            <if>
+                <istrue value='${cloud_output}' />
+                <then>
+                    <exec command='rm -f ${conf}/cloudsearch.php' />
+                    <echo msg='Removing cloudsearch.php ' />
+                </then>
+                <else>
+                    <echo msg='Cloudsearch.php was not found, creating it' />
+                </else>
+            </if>
+            <copy file='${conf}/cloudsearch.php.sample' tofile='${conf}/cloudsearch.php' >
+                <filterchain>
+                    <replacetokens>
+                        <token key='cs_key' value='${cloudsearch_key}' />
+                        <token key='cs_secret' value='${cloudsearch_secret}' />
+                        <token key='cs_cache_config' value='${cloudsearch_default_cache_config}' />
+                        <token key='cs_certificate_authority' value='${cloudsearch_certificate_authority}' />
+                        <token key='domain' value='${tube_domain}' />
+                        <token key='cs_cache_host' value='${cloudsearch_cache_host}' />
+                        <token key='cs_cache_port' value='${cloudsearch_cache_port}' />
+                        <token key='cs_cache_ttl' value='${cloudsearch_cache_ttl}' />
+                    </replacetokens>
+                </filterchain>
+            </copy>
+        </target>
+
+        <target name='beanstalk' description='get beanstalk.php working for production' >
+            <exec command='find ${conf} -name beanstalk.php -print' outputProperty='bean_output' />
+            <if>
+                <istrue value='${bean_output}' />
+                <then>
+                    <exec command='rm -f ${conf}/beanstalk.php' />
+                    <echo msg='Removing beanstalk.php' />
+                </then>
+                <else>
+                    <echo msg='Beanstalk.php was not found, creating it' />
+                </else>
+            </if>
+            <copy file='${conf}/beanstalk.php.sample' tofile='${conf}/beanstalk.php' >
+                <filterchain>
+                    <replacetokens>
+                        <token key='domain' value='${tube_domain}' />
+                    </replacetokens>
+                </filterchain>
+            </copy>
+        </target>
+
+        <target name='test_config' description='when running tests it know what url to use' >
+            <exec command='find ${conf} -name test.php' outputProperty='config_output' />
+            <if>
+                <istrue value='${config_output}' />
+                <then>
+                    <exec command='rm -f ${conf}/test.php' />
+                    <echo msg='Removing test.php' />
+                </then>
+                <else>
+                    <echo msg='test.php was not found, creating it' />
+                </else>
+            </if>
+            <copy file='${conf}/test.php.sample' tofile='${conf}/test.php' >
+                <filterchain>
+                    <replacetokens>
+                        <token key='project_hostname' value='${project_hostname}' />
+                    </replacetokens>
+                </filterchain>
+            </copy>  
+        </target>
+
+        <target name='identity' description='checks if identity.php is in config directory and deletes it' >
+            <echo msg='checking to see if identity is located in application/config ......' />
+            <exec command='find ${conf} -name identity.php' outputProperty='identity_output' />
+            <if>
+                <istrue value='${identity_output}'/>
+                <then>
+                    <exec command='rm -f ${conf}/identity.php' />
+                    <echo msg='Removing identity.php' />
+                </then>
+                <else>
+                    <echo msg='identity.php not found' />
+                </else>
+            </if>
+            <exec command='chmod 777 ${conf}' />
+            <http-request url='http://${project_hostname}/' />
+            <exec command='chown -R <owner>:<owner> ${conf}' />
+            <exec command='chmod 775 ${conf}' />
+            <phingcall target='test_config' />
+            <phingcall target='unittests' />
+        </target>
+
+        <target name='unittests' description='changes owner and group which gives permission for the auto generated tests' >
+            <echo msg='changing owner and group to api/*' />
+            <exec command='chown -R <owner>:<owner> ${realpath}/application/test/api/' />
+            <exec command='chmod -R 775 ${realpath}/application/test/api/' />
+            <exec command='mkdir ${realpath}/application/test/api/errors' />
+            <echo msg='creating dev tests' />
+            <http-request url='http://${project_hostname}/discover/maketests' verbose='true' observerEvents='receivedHeaders' />
+            <!-- <phing phingfile='phing/testing.xml' target='phpunitTests' /> -->
+            <!-- <phing phingfile='phing/metamodeltesting.xml' target='phpunitTests' /> -->
+        </target>
+
+        <target name='makesdk' description='creates sdk needed for the model' >
+            <echo msg='making Model for sdk' />
+            <exec command='find ${realpath}/application/classes/ -iname Model -type d' outputProperty='makesdk_output' />
+            <if>
+                <istrue value='${makesdk_output}'/>
+                <then>
+                    <echo msg='we have Model' />
+                </then>
+                <else>
+                    <echo msg='Model was not found' />
+                    <exec command='mkdir ${realpath}/application/classes/Model' />
+                </else>
+            </if>
+        </target>
+
+    </project>

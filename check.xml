@@ -1,0 +1,188 @@
+<?xml version='1.0'?>
+    <project name='checklist' basedir='../' default='check' >
+
+        <target name='check' description='Looks for server installations' >
+            <phingcall target='phing_version' />
+            <phingcall target='pear' />
+            <phingcall target='phpunit' />
+            <phingcall target='php' />
+            <phingcall target='curl' />
+            <phingcall target='gd' />
+            <phingcall target='openssl' />
+            <phingcall target='libxml2' />
+            <phingcall target='beanstalkd' />
+            <phingcall target='supervisord' />
+            <phingcall target='Psql' />
+            <phingcall target='pecl_oauth'/>
+            <phingcall target='aws_tool'/>
+        </target>
+
+        <target name='phing_version' description='information on phing version that is installed' >
+            <exec command='phing -v'  outputProperty='phing_output' />
+            <if>
+                <istrue value='${phing_output}' />
+                <then>
+                    <echo msg='Version for phing: ${phing_output}' />
+                </then>
+                <else>
+                    <fail msg=' Phing was not installed please install it, This should never happen  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='pear' description='information on pear version that is installed' >
+            <exec command='pear -V'  outputProperty='pear_output' />
+            <if>
+                <istrue value='${pear_output}' />
+                <then>
+                    <echo msg='${pear_output}' />
+                </then>
+                <else>
+                    <fail msg=' Pear was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='phpunit' description='information on phpunit version that is installed' >
+            <exec command='phpunit --version'  outputProperty='phpunit_output' />
+            <if>
+                <istrue value='${phpunit_output}' />
+                <then>
+                    <echo msg='${phpunit_output}' />
+                </then>
+                <else>
+                    <fail msg=' Phpunit was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='php' description='checks to see if php is installed'>
+            <exec command="php -i | grep 'PHP Version'" outputProperty='php_output' />
+            <if>
+                <istrue value='${php_output}' />
+                <then>
+                    <echo msg='Output for php: ${php_output}' />
+                </then>
+                <else>
+                    <fail msg=' PHP5 was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='curl' description='checks to see if curl is installed'>
+            <exec command=' dpkg -l curl || /bin/false' outputProperty='curl_output' />
+            <if>
+                <istrue value='${curl_output}' />
+                <then>
+                    <echo msg='${curl_output}' />
+                </then>
+                <else>
+                    <fail msg=' curl was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='gd' description='checks to see if gd is installed'>
+            <exec command='dpkg -l | grep php5-gd' outputProperty='gd_output' />
+            <if>
+                <istrue value='${gd_output}' />
+                <then>
+                    <echo msg='Output for gd: ${gd_output}' />
+                </then>
+                <else>
+                    <fail msg=' PHP5-gd was not installed please install it --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='openssl' description='checks to see if openssl is installed'>
+            <exec command='dpkg -l openssl || /bin/false' outputProperty='openssl_output' />
+            <if>
+                <istrue value='${openssl_output}' />
+                <then>
+                    <echo msg='${openssl_output}' />
+                </then>
+                <else>
+                    <fail msg=' openssl was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='libxml2' description='checks to see if libxml2 is installed'>
+            <exec command='dpkg -l libxml2 || /bin/false' outputProperty='libxml2_output' />
+             <if>
+                <istrue value='${libxml2_output}' />
+                <then>
+                    <echo msg='${libxml2_output}' />
+                </then>
+                <else>
+                    <fail msg=' libxml2 was not installed please install it  --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='beanstalkd' description='checks to see if beanstalkd is installed and running'>
+            <exec command='ps ax |grep beanstalkd |grep -v grep || /bin/false' outputProperty='beanstalkd_output' />
+             <if>
+                <istrue value='${beanstalkd_output}' />
+                <then>
+                    <echo msg='${beanstalkd_output}' />
+                </then>
+                <else>
+                    <fail msg=' beanstalkd was not installed OR is not running please check to see its installed --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='supervisord' description='checks to see if supervisord is installed and running' >
+            <exec command='supervisorctl status' outputProperty='supervisord_output' />
+            <if>
+                <istrue value='${supervisord_output}' />
+                <then>
+                    <echo msg='${supervisord_output}' />
+                </then>
+                <else>
+                    <fail msg='supervisord was not installed OR is not running please check to see its installed --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='Psql' description='checks to see if psql is installed ' >
+            <exec command='psql --version' outputProperty='psql_output' />
+            <if>
+                <istrue value='${psql_output}' />
+                <then>
+                    <echo msg='${psql_output}' />
+                </then>
+                <else>
+                    <fail msg='psql was not installed OR is not running please check to see its installed --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='pecl_oauth' description='checks to see which package of oauth is installed from pecl' >
+            <exec command="pecl list-all | grep 'pecl/oauth'" outputProperty='pecl_output' />
+            <if>
+                <istrue value='${pecl_output}' />
+                <then>
+                    <echo msg='${pecl_output}' />
+                </then>
+                <else>
+                    <fail msg='pecl package was not installed please check to see its installed --LD' />
+                </else>
+            </if>
+        </target>
+
+        <target name='aws_tool' description='checks to see aws_tools are installed' >
+            <exec command="grep 'CS_HOME\|JAVA_HOME\|AWS_CREDENTIAL_FILE\|PATH' ~/.bashrc" outputProperty='aws_output' />
+            <if>
+                <istrue value='${aws_output}' />
+                <then>
+                    <echo msg='${aws_output}' />
+                </then>
+                <else>
+                    <fail msg='aws tools are not in place please put them in your .bashrc --LD' />
+                </else>
+            </if>
+        </target>
+    </project>

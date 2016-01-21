@@ -1,0 +1,42 @@
+<?xml version='1.0'?>
+    <project name='cloudsearch' basedir='../' default='main' >
+
+        <property name='realpath' value='${project.basedir}' />
+        <property environment="env" />
+        <property name="environment" value='CS_HOME="/usr/local/aws/cloud-search-tools" JAVA_HOME="/usr" AWS_CREDENTIAL_FILE="${env.HOME}/.aws-credentials"' />
+        <property name='project' value='${name}' />
+        <property name='project_hostname' value='${whoami}.${project}.example.com' />
+
+        <target name='main' description='cloudsearch instance' >
+            <exec command='whoami' outputProperty='whoami' />
+            <php expression="preg_replace('/.*\//', '', '${realpath}')" returnProperty='name' />
+
+            <input propertyname='cloudsearch_name' message='What is the name you want for this cloudsearch instance'  />
+            <exec command='wget --output-document=${project.basedir}/cloudsearch/cloudsearchdomain http://${project_hostname}/discover/cloudsearchdomain'  passthru='true' />
+            <exec command='php ${project.basedir}/modules/metamodel/tools/cloudsearch/start-domain.php ${cloudsearch_name} ${project.basedir}/cloudsearch/cloudsearchdomain' passthru='true' />
+            <exec command='${environment} cs-configure-text-options --domain-name ${cloudsearch_name} --stopwords ${project.basedir}/cloudsearch/stopwords.txt' passthru='true' />
+            <exec command='${environment} cs-configure-access-policies --domain-name ${cloudsearch_name} --update --force --allow <ip address goes here and port> --service all' passthru='true' />
+            <phingcall target='check' />
+        </target>
+
+        <target name='check' description='tells us the status we are on' >
+            <exec command='${environment} cs-describe-domain --domain-name ${cloudsearch_name} --show-all --verbose' outputProperty='describe_domain' />
+            <if>
+                <contains string="${describe_domain}" substring="currently being activated" />
+                <then>
+                    <echo msg='need to wait for cs domain' />
+                    <phingcall target='pause' />
+                </then>
+                <else>
+                    <echo msg='Here is your cloudsearch info' />
+                    <exec command='${environment} cs-index-documents --domain-name ${cloudsearch_name}' />
+                </else>
+            </if>
+        </target>
+
+        <target name='pause' description='php script that pauses for a minute' >
+            <exec command='php -f ${project.basedir}/phing/properties/pause.php ' />
+            <phingcall target='check' />
+        </target>
+
+    </project>

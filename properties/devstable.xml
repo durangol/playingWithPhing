@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+    <project name='devstable' basedir='../../' default='main' >   
+
+        <target name='main'>
+            <input propertyname="cloudsearch_key">What is your cloudsearch_key?</input>
+            <input propertyname="cloudsearch_secret">What is your cloudsearch_secret?</input>
+            <input propertyname="domain">What is your cloudsearch domain? ie: -dev-2013-08-14 </input>
+            <input propertyname='database'>What is the name of your database?</input>
+            <input propertyname='hostname'>What is your project hostname? ie: example.com</input>
+
+            <phing phingfile='phing/devstable_environment.xml' target='rights'>
+                
+                <!-- url information -->
+                <property name='project_hostname' value='${hostname}' />
+
+                <property name='realpath' value='${project.basedir}' />
+                <property name='conf' value='${realpath}/application/config/' />
+                
+                <!-- cloudsearch info -->
+                <property name='cloudsearch_key' value='${cloudsearch_key}' />
+                <property name='cloudsearch_secret' value='${cloudsearch_secret}' />
+                <property name='cloudsearch_default_cache_config' value='apc' />
+                <property name='cloudsearch_certificate_authority' value='true, // THIS IS A LOAD-BEARING COMMENT' />
+                <property name='cloudsearch_cache_host' value='localhost' />
+                <property name='cloudsearch_cache_port' value='00000' />
+                <property name='cloudsearch_cache_ttl' value='0000000' />
+                
+                <!-- cloudsearch domains and beanstalk tube prefixes --> 
+                <property name='tube_domain' value='${domain}' />
+                
+                <!-- database --> 
+                <property name='keyLookingfor' value='${database}' />
+
+            </phing>
+        </target>
+
+    </project>
